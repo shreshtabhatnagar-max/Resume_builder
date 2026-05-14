@@ -21,14 +21,14 @@ import java.util.UUID;
 @Slf4j
 public class AuthService {
 
-    @Autowired
-    UserRepository userRepository;
+
+    private final UserRepository userRepository;
 
     private final EmailService emailService;
     @Value("${app.base.url=http://localhost:8080}")
     private String appBaseUrl;
 
-    public AuthResponse Register(RegisterRequestDTO requestDTO) {
+    public AuthResponse register(RegisterRequestDTO requestDTO) {
         log.info("Inside AuthService: register()", requestDTO);
 
         if (userRepository.existsByEmail(requestDTO.getEmail())) {
@@ -44,6 +44,7 @@ public class AuthService {
     }
 
     private void sendVerificationEmail(User newUser) {
+        log.info("Inside AuthService-sendVerificationEmail(): {}", newUser);
         try {
             String link = appBaseUrl + "/api/auth/verify-email?token=" + newUser.getVerificationToken();
             String html = "<div style='font-family:sans-serif'>" +
@@ -57,6 +58,7 @@ public class AuthService {
             emailService.sendHtmlEmail(newUser.getEmail(), "Verify your email", html);
 
         } catch (Exception e) {
+            log.error("Exception occured at sendVerificationEmail(): {}",e.getMessage());
             throw new RuntimeException("Failed to send verification email" + e.getMessage());
         }
     }
@@ -68,7 +70,8 @@ public class AuthService {
                 .email(newUser.getEmail()).
                 profileImageUrl(newUser.getProfileImageUrl())
                 .emailVerified(newUser.isEmailVerified()).
-                subscription(newUser.getSubscriptionPlan())
+                token(newUser.getVerificationToken())
+                .subscription(newUser.getSubscriptionPlan())
                 .createdAt(newUser.getCreatedAt())
                 .updatedAt(newUser.getUpdateAt())
                 .build();
@@ -88,4 +91,20 @@ public class AuthService {
                 updateAt(LocalDateTime.now())
                 .build();
     }
+
+    public void verifyEmail(String token) {
+        User user = userRepository.findByVerificationToken(token).orElseThrow(() -> new RuntimeException("Invalid or Expired Verification Token"));
+
+        if (user.getVerificationExpires() != null &&
+                user.getVerificationExpires().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("Verification token has Expired .Please request new one");
+        }
+        //String tokens = UUID.randomUUID().toString();
+        user.setEmailVerified(true);
+        user.setVerificationToken(null);
+        user.setVerificationExpires(null);
+
+        userRepository.save(user);
+    }
+
 }
