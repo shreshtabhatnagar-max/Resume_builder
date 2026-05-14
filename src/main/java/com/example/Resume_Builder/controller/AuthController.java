@@ -3,6 +3,7 @@ package com.example.Resume_Builder.controller;
 import com.example.Resume_Builder.dto.AuthResponse;
 import com.example.Resume_Builder.dto.RegisterRequestDTO;
 import com.example.Resume_Builder.service.AuthService;
+import com.example.Resume_Builder.util.AppConstants;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,25 +13,28 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
+import static com.example.Resume_Builder.util.AppConstants.*;
+
 @RestController
 @RequiredArgsConstructor
 @Slf4j
-@RequestMapping("/api/auth")
+@RequestMapping(AUTH_CONTROLLER)
 public class AuthController {
     private final AuthService authService;
 
-    @PostMapping("/register")
+    @PostMapping(REGISTER)
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequestDTO requestDTO) {
-
+        log.info("Inside AuthController - register(): {}", requestDTO);
         AuthResponse response = authService.register(requestDTO);
-        log.info("Response from service:{}",response);
+        log.info("Response from service:{}", response);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
 
     }
 
-    @GetMapping("/verify-email")
+    @GetMapping(VERIFY_EMAIL)
     public ResponseEntity<?> verifyEmail(@RequestParam String token) {
+        log.info("Inside AuthController - verifyEmail(): {}", token);
         authService.verifyEmail(token);
-        return ResponseEntity.status(HttpStatus.OK).body(Map.of("message","Email Verified successfully"));
+        return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "Email Verified successfully"));
     }
 }

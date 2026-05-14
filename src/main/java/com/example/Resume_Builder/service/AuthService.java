@@ -25,7 +25,7 @@ public class AuthService {
     private final UserRepository userRepository;
 
     private final EmailService emailService;
-    @Value("${app.base.url=http://localhost:8080}")
+    @Value("${app.base.url:http://localhost:8080}")
     private String appBaseUrl;
 
     public AuthResponse register(RegisterRequestDTO requestDTO) {
@@ -47,18 +47,19 @@ public class AuthService {
         log.info("Inside AuthService-sendVerificationEmail(): {}", newUser);
         try {
             String link = appBaseUrl + "/api/auth/verify-email?token=" + newUser.getVerificationToken();
+            log.info("Base URL: {}", appBaseUrl);
             String html = "<div style='font-family:sans-serif'>" +
                     "<h2>Verify your email</h2>" +
                     "<p>Hi" + newUser.getName() + ",please confirm your email to activate your account </p>"
                     + "<p><a href='" + link +
                     "'style='display:inline-block;padding:10px 16px;background:#6366f1;color:#fff;border-radius:6px;text-decoration:none'>Verify Email</a></p>"
-                    + "<p>Or copy this link:" + link + "</p>" +
+                    + "<p>Or copy this link: <a href='" + link + "'>" + link + "</a></p>" +
                     "<p> This link expires in 24 hours.</p>" +
                     "</div>";
             emailService.sendHtmlEmail(newUser.getEmail(), "Verify your email", html);
 
         } catch (Exception e) {
-            log.error("Exception occured at sendVerificationEmail(): {}",e.getMessage());
+            log.error("Exception occured at sendVerificationEmail(): {}", e.getMessage());
             throw new RuntimeException("Failed to send verification email" + e.getMessage());
         }
     }
@@ -93,13 +94,14 @@ public class AuthService {
     }
 
     public void verifyEmail(String token) {
+        log.info("Inside AuthService: verifyEmail(): {}", token);
         User user = userRepository.findByVerificationToken(token).orElseThrow(() -> new RuntimeException("Invalid or Expired Verification Token"));
 
         if (user.getVerificationExpires() != null &&
                 user.getVerificationExpires().isBefore(LocalDateTime.now())) {
             throw new RuntimeException("Verification token has Expired .Please request new one");
         }
-        //String tokens = UUID.randomUUID().toString();
+
         user.setEmailVerified(true);
         user.setVerificationToken(null);
         user.setVerificationExpires(null);
