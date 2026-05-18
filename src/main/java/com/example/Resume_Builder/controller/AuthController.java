@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.Map;
 
 import static com.example.Resume_Builder.util.AppConstants.*;
@@ -45,8 +46,8 @@ public class AuthController {
     }
 
 
-    @PostMapping("/uplode-image")
-    public ResponseEntity<?> uploadImage(@RequestPart("image") MultipartFile file) throws {
+    @PostMapping("/upload_image")
+    public ResponseEntity<?> uploadImage(@RequestPart("image") MultipartFile file) throws IOException {
        Map<String ,String>response= fileUploadService.uploadSingleImage(file);
        return ResponseEntity.ok(response);
     }

@@ -51,4 +51,5 @@ public class GlobalExceptionHandler {
         response.put("Errors",ex.getMessage());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
+
 }
