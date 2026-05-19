@@ -1,6 +1,8 @@
 package com.example.Resume_Builder.config;
 
+import com.example.Resume_Builder.security.JwtAuthenticationEntryPoint;
 import com.example.Resume_Builder.security.JwtAuthenticationFilter;
+import io.jsonwebtoken.Jwt;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,7 +34,10 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.cors(cors -> cors.configurationSource(corsConfigurationSource())).csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth.requestMatchers("/api/auth/register", "/api/auth/login", "/api/auth/verify-email", "/api/auth/upload-image", "/actuator/**").permitAll()
-                        .anyRequest().authenticated()).sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)).addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                        .anyRequest().authenticated()).
+                sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)).
+                addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class).
+                exceptionHandling(ex -> ex.authenticationEntryPoint(new JwtAuthenticationEntryPoint()));
 
         return http.build();
     }

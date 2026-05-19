@@ -60,4 +60,8 @@ public class AuthController {
         return ResponseEntity.ok(response);
 
     }
+    @GetMapping("/validate")
+    public String testValidationToken(){
+        return "Token Validation is Working";
+    }
 }
