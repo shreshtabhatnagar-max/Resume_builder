@@ -1,6 +1,7 @@
 package com.example.Resume_Builder.controller;
 
 import com.example.Resume_Builder.dto.AuthResponse;
+import com.example.Resume_Builder.dto.LoginRequest;
 import com.example.Resume_Builder.dto.RegisterRequestDTO;
 import com.example.Resume_Builder.service.AuthService;
 import com.example.Resume_Builder.service.FileUploadService;
@@ -46,9 +47,17 @@ public class AuthController {
     }
 
 
-    @PostMapping("/upload_image")
+    @PostMapping(UPLOAD_PROFILE)
     public ResponseEntity<?> uploadImage(@RequestPart("image") MultipartFile file) throws IOException {
-       Map<String ,String>response= fileUploadService.uploadSingleImage(file);
-       return ResponseEntity.ok(response);
+        log.info("Inside Auth_Controller - uploadImage()");
+        Map<String, String> response = fileUploadService.uploadSingleImage(file);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
+        AuthResponse response = authService.login(request);
+        return ResponseEntity.ok(response);
+
     }
 }
