@@ -1,5 +1,7 @@
 package com.example.Resume_Builder.entity;
 
+
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -8,6 +10,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -19,6 +22,8 @@ import java.util.List;
 
 @Entity
 @Table(name = "resume")
+@EntityListeners(AuditingEntityListener.class)
+@JsonInclude (JsonInclude.Include.ALWAYS)
 public class Resume {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -32,10 +37,14 @@ public class Resume {
     private List<WorkExperience> workExperiences;
 
     private String thumbnailLink;
-
-    private ProfileInfo profileInfo;
-
-    private ContactInfo contactInfo;
+    @Builder.Default
+    @Embedded
+    @JsonInclude(JsonInclude.Include.ALWAYS)
+    private ProfileInfo profileInfo =new ProfileInfo();
+    @Builder.Default
+    @Embedded
+    private ContactInfo contactInfo =new ContactInfo() ;
+    @Embedded
     private Template template;
     @ElementCollection
     private List<Education> educations;
@@ -47,6 +56,7 @@ public class Resume {
     private List<Certification> certification;
     @ElementCollection
     private List<Language> languages;
+    @ElementCollection
     private List<String> interest;
     @CreatedDate
     private LocalDateTime createdAt;
@@ -54,14 +64,14 @@ public class Resume {
     private LocalDateTime updatedAt;
 
 
-
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
     @Builder
     @Embeddable
-    private static class Template {
+    public static class Template {
         private String theme;
+        @ElementCollection
         private List<String> colourPalette;
     }
 
