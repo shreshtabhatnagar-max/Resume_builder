@@ -23,7 +23,7 @@ public class AuthResponse {
     private String name;
     private String email;
     private String profileImageUrl;
-    private String subscription;
+    private String subscriptionPlan;
     private Boolean emailVerified;
     private String token;
     @CreationTimestamp
