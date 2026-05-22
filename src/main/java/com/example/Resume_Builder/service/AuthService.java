@@ -80,7 +80,7 @@ public class AuthService {
                 profileImageUrl(newUser.getProfileImageUrl())
                 .emailVerified(newUser.isEmailVerified()).
                 token(newUser.getVerificationToken())
-                .subscription(newUser.getSubscriptionPlan())
+                .subscriptionPlan(newUser.getSubscriptionPlan())
                 .createdAt(newUser.getCreatedAt())
                 .updatedAt(newUser.getUpdateAt())
                 .build();
