@@ -9,7 +9,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static com.example.Resume_Builder.util.AppConstants.PREMIUM;
 
@@ -42,17 +44,47 @@ public class PaymentController {
     }
 
     @PostMapping("/verify")
-    public ResponseEntity<?> verifyPayment(@RequestBody Map<String, String> request) {
-        return null;
+    public ResponseEntity<?> verifyPayment(@RequestBody Map<String, String> request) throws RazorpayException {
+        //Step 1: Validate the request method
+        String razorpayOrderId = request.get("razorpay_order_id");
+        String razorpayPaymentId = request.get("razorpay_payment_id");
+        String razorpaySignature = request.get("razorpay_signature");
+        if (Objects.isNull(razorpayOrderId) ||
+                Objects.isNull(razorpayPaymentId) ||
+                Objects.isNull(razorpaySignature)) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Missing required payment parameters"));
+        }
+
+        //Step 2: call the service method
+        boolean isValid = paymentService.verifyPayment(razorpayOrderId, razorpayPaymentId, razorpaySignature);
+
+
+        //Step 3: return the response
+        if (isValid) {
+            return ResponseEntity.ok(Map.of(
+                    "message", "Payment verified successfully",
+                    "status", "success"
+            ));
+        } else {
+            return  ResponseEntity.badRequest().body(Map.of("message","Payment Verification failed"));
+        }
+
     }
 
     @GetMapping("/history")
     public ResponseEntity<?> getPaymentHistory(Authentication authentication) {
-        return null;
+        //Step 1: call the Service method
+        List<Payment> payments= paymentService.getUserPayments(authentication.getPrincipal());
+        //Step 2:return the response
+        return ResponseEntity.ok(payments);
     }
 
     @GetMapping("/order/{orderId}")
     public ResponseEntity<?> getOrderDetails(@PathVariable String orderId) {
-        return null;
+        //Step 1: Call the Service method
+        Payment paymentDetails=paymentService.getPaymentDetails(orderId);
+        //Step 2: return response
+        return ResponseEntity.ok(paymentDetails);
+
     }
 }

@@ -2,16 +2,22 @@ package com.example.Resume_Builder.service;
 
 import com.example.Resume_Builder.dto.AuthResponse;
 import com.example.Resume_Builder.entity.Payment;
+import com.example.Resume_Builder.entity.User;
 import com.example.Resume_Builder.repository.PaymentRepository;
+import com.example.Resume_Builder.repository.UserRepository;
 import com.razorpay.Order;
 import com.razorpay.RazorpayClient;
 import com.razorpay.RazorpayException;
+import com.razorpay.Utils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.util.List;
 import java.util.UUID;
 
 import static com.example.Resume_Builder.util.AppConstants.PREMIUM;
@@ -22,6 +28,7 @@ import static com.example.Resume_Builder.util.AppConstants.PREMIUM;
 public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final AuthService authService;
+    private final UserRepository userRepository;
     @Value("${razorpay.key.id}")
     private String razorpayKeyId;
     @Value("${razorpay.key.secret}")
@@ -50,7 +57,7 @@ public class PaymentService {
         Order razorpayOrder = razorpayClient.orders.create(orderRequest);
 
         //Step 4: Save the order details into databases
-        Payment newPayment =Payment.builder()
+        Payment newPayment = Payment.builder()
                 .userId(authResponse.getId())
                 .razorpayOrderId(razorpayOrder.get("id"))
                 .amount(amount)
@@ -61,6 +68,59 @@ public class PaymentService {
                 .build();
 
         //Step 5: return the result
-         return paymentRepository.save(newPayment);
+        return paymentRepository.save(newPayment);
+    }
+
+    public boolean verifyPayment(String razorpayOrderId, String razorpayPaymentId, String razorpaySignature) throws RazorpayException {
+        try {
+
+            JSONObject attributes = new JSONObject();
+            attributes.put("razorpay_order_id", razorpayOrderId);
+            attributes.put("razorpay_payment_id", razorpayPaymentId);
+            attributes.put("razorpay_signature_id", razorpaySignature);
+            boolean isValidSignature = Utils.verifyPaymentSignature(attributes, razorpayKeySecret);
+            if (isValidSignature) {
+                //Update the payment status
+                Payment payment = paymentRepository.findByRazorpayOrderId(razorpayOrderId).orElseThrow(() -> new RuntimeException("Payment Not Found"));
+                payment.setRazorpayPaymentId(razorpayPaymentId);
+                payment.setRazorpaySignature(razorpaySignature);
+                payment.setStatus("paid");
+                paymentRepository.save(payment);
+
+                //Upgrade the user Subscription
+                upgradeUSerSubscription(payment.getUserId(), payment.getPlanType());
+                return true;
+            }
+            return false;
+        } catch (Exception e) {
+            log.error("Error verifying the payment", e);
+            return false;
+            //throw new RuntimeException(e.getMessage());
+        }
+
+
+    }
+
+    private void upgradeUSerSubscription(String userId, String planType) {
+        User existingUser = userRepository.findById(Long.valueOf(userId)).orElseThrow(() -> new UsernameNotFoundException("User Not Found"));
+        existingUser.setSubscriptionPlan(planType);
+        userRepository.save(existingUser);
+        log.info("User {} upgraded to{} plan ", userId, planType);
+    }
+
+    public List<Payment> getUserPayments(Object principal) {
+        // Step 1 :get the current profile
+        AuthResponse authResponse = authService.getProfile(principal);
+
+        //Step 2: call the repo finder method
+        return paymentRepository.findByUserIdOrderByCreatedAtDesc(authResponse.getId());
+
+
+    }
+
+    public Payment getPaymentDetails(String orderId) {
+        //Step 1: Call the Repo finder method
+        return paymentRepository.findByRazorpayOrderId(orderId).orElseThrow(()-> new RuntimeException("Payment not Found"));
+
     }
 }

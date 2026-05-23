@@ -6,9 +6,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
 
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 
 @Data
@@ -36,9 +36,9 @@ public class Payment {
 
     private String receipt;
 
-    @CreatedDate
+    @CreationTimestamp
     private LocalDateTime createdAt;
-    @LastModifiedDate
+    @UpdateTimestamp
     private LocalDateTime updatedAt;
 
 }
