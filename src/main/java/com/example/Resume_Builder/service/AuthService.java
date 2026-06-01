@@ -93,7 +93,7 @@ public class AuthService {
                 password(passwordEncoder.encode(requestDTO.getPassword())).
                 profileImageUrl(requestDTO.getProfileImageUrl()).
                 subscriptionPlan("Basic").
-                emailVerified(false).
+                emailVerified(true).
                 verificationToken(UUID.randomUUID().toString()).
                 verificationExpires(LocalDateTime.now().plusHours(24)).
                 createdAt(LocalDateTime.now()).
@@ -103,7 +103,8 @@ public class AuthService {
 
     public void verifyEmail(String token) {
         log.info("Inside AuthService: verifyEmail(): {}", token);
-        User user = userRepository.findByVerificationToken(token).orElseThrow(() -> new RuntimeException("Invalid or Expired Verification Token"));
+        User user = userRepository.findByVerificationToken(token).orElseThrow(() ->
+                new RuntimeException("Invalid or Expired Verification Token"));
 
         if (user.getVerificationExpires() != null &&
                 user.getVerificationExpires().isBefore(LocalDateTime.now())) {
@@ -118,10 +119,11 @@ public class AuthService {
     }
 
     public AuthResponse login(LoginRequest request) {
-        User existingUser = userRepository.findByEmail(request.getEmail()).orElseThrow(() -> new UsernameNotFoundException("Invalid Email And Password"));
+        User existingUser = userRepository.findByEmail(request.getEmail()).orElseThrow(() ->
+                new UsernameNotFoundException("Invalid Email And Password"));
 
         if (!passwordEncoder.matches(request.getPassword(), existingUser.getPassword())) {
-            throw new UsernameNotFoundException("Please verify your  email before logging in.");
+            throw new RuntimeException("Invalid Email Or Password");
         }
         if (!existingUser.isEmailVerified()) {
             throw new RuntimeException("Please Verify Your email before logging in.");

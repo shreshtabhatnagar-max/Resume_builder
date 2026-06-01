@@ -33,8 +33,12 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.cors(cors -> cors.configurationSource(corsConfigurationSource())).csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(auth -> auth.requestMatchers("/api/auth/register", "/api/auth/login", "/api/auth/verify-email", "/api/auth/upload-image","/api/auth/resend-verification" ,"/actuator/**").permitAll()
-                        .anyRequest().authenticated()).
+                .authorizeHttpRequests(auth -> auth.requestMatchers("/api/auth/register",
+                                "/api/auth/login", "/api/auth/verify-email",
+                                "/api/auth/upload-image","/api/auth/resend-verification" ,
+                                "/actuator/**").permitAll()
+                        .anyRequest().authenticated()).httpBasic(httpBasic -> httpBasic.disable())
+                .formLogin(form -> form.disable()).
                 sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)).
                 addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class).
                 exceptionHandling(ex -> ex.authenticationEntryPoint(new JwtAuthenticationEntryPoint()));
@@ -45,7 +49,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173"));
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
