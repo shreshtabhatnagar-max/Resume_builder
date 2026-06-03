@@ -29,8 +29,6 @@ public class EmailService {
 
 
 
-
-
     public void sendHtmlEmail(String to, String subject, String htmlContent) throws Exception {
         log.info("Inside EmailService - sendHtmlEmail(): {}, {}, {}", to, subject, htmlContent);
         MimeMessage message = mailSender.createMimeMessage();
