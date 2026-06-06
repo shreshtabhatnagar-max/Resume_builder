@@ -32,3 +32,9 @@ build/
 ### VS Code ###
 .vscode/
 src/main/resources/application.properties
+
+
+# Frontend (Next.js)
+resume-builder-frontend/node_modules/
+resume-builder-frontend/.next/
+resume-builder-frontend/.env.local
