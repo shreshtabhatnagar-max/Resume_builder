@@ -30,7 +30,7 @@ const SECTIONS = [
   { id: "interests", label: "Interests", icon: <Heart className="w-4 h-4" /> },
 ];
 
-export default function EditResumePage({ params }: { params: Promise<Params> }) {
+export default function EditResumePage({ params }: { params: Params }) {
   const { id } = params;
   const { data: resume, isLoading } = useResume(id);
   const { mutate: updateResume, isPending: saving } = useUpdateResume();
