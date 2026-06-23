@@ -56,12 +56,22 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping(LOGIN)
-    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
+//    @PostMapping(LOGIN)
+//    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
+//        AuthResponse response = authService.login(request);
+//        return ResponseEntity.ok(response);
+//
+//    }
+@PostMapping(LOGIN)
+public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
+    try {
         AuthResponse response = authService.login(request);
         return ResponseEntity.ok(response);
-
+    } catch (Exception e) {
+        e.printStackTrace(); // prints full stack trace to your IntelliJ console
+        return ResponseEntity.status(500).body("Login failed: " + e.getMessage());
     }
+}
 //    @GetMapping("/validate")
 //    public String testValidationToken(){
 //        return "Token Validation is Working";

@@ -36,7 +36,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth.requestMatchers("/api/auth/register",
                                 "/api/auth/login", "/api/auth/verify-email",
                                 "/api/auth/upload-image","/api/auth/resend-verification" ,
-                                "/actuator/**").permitAll()
+                                "/actuator/**", "/api/health").permitAll()
                         .anyRequest().authenticated()).httpBasic(httpBasic -> httpBasic.disable())
                 .formLogin(form -> form.disable()).
                 sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)).
@@ -51,7 +51,8 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOriginPatterns(Arrays.asList(
                 "http://localhost:*",
-                "https://*.vercel.app"
+                "https://*.vercel.app",
+                "https://resume-builder-ncjyypnc5-shreshtabhatnagar-maxs-projects.vercel.app/"
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));

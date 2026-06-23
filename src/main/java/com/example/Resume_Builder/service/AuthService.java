@@ -123,7 +123,7 @@ public class AuthService {
                 new UsernameNotFoundException("Invalid Email And Password"));
 
         if (!passwordEncoder.matches(request.getPassword(), existingUser.getPassword())) {
-            throw new RuntimeException("Invalid Email Or Password");
+            throw new RuntimeException("Password is not Match");
         }
         if (!existingUser.isEmailVerified()) {
             throw new RuntimeException("Please Verify Your email before logging in.");

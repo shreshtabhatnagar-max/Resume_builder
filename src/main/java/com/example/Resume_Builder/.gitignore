@@ -2,3 +2,4 @@ src/main/resources/application.properties
 target/
 .idea/
 *.iml
+**/application_local.properties
