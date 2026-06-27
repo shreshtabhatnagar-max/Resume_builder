@@ -42,6 +42,9 @@ export function Navbar() {
             <Link href="/dashboard/templates" className="px-4 py-2 rounded-lg text-sm text-[#aaa] hover:text-[var(--foreground)] hover:bg-white/5 transition-all">
               Templates
             </Link>
+            <Link href="/dashboard/interview" className="px-4 py-2 rounded-lg text-sm text-[#aaa] hover:text-[var(--foreground)] hover:bg-white/5 transition-all">
+     Mock Interview
+   </Link>
             <Link href="/dashboard/upgrade" className="px-4 py-2 rounded-lg text-sm text-[#aaa] hover:text-[var(--foreground)] hover:bg-white/5 transition-all flex items-center gap-1.5">
               <Crown className="w-3.5 h-3.5" />
               Upgrade

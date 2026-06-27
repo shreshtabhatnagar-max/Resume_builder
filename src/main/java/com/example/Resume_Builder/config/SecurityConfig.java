@@ -36,7 +36,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth.requestMatchers("/api/auth/register",
                                 "/api/auth/login", "/api/auth/verify-email",
                                 "/api/auth/upload-image","/api/auth/resend-verification" ,
-                                "/actuator/**", "/api/health").permitAll()
+                                "/actuator/**", "/api/health","/api/test/**").permitAll()
                         .anyRequest().authenticated()).httpBasic(httpBasic -> httpBasic.disable())
                 .formLogin(form -> form.disable()).
                 sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)).

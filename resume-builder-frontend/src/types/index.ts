@@ -129,6 +129,45 @@ export interface CreateOrderResponse {
   receipt: string;
 }
 
+// ─── Interview Types ──────────────────────────────────────────
+export interface InterviewQuestion {
+  questionId: number;
+  questionText: string;
+  orderIndex: number;
+}
+
+export interface InterviewSessionResponse {
+  sessionId: number;
+  status: "IN_PROGRESS" | "COMPLETED";
+  createdAt: string;
+  questions: InterviewQuestion[];
+}
+
+export interface AnswerResponse {
+  questionId: number;
+  questionText: string;
+  answerTranscript: string;
+  score: number;
+  feedback: string;
+}
+
+export interface InterviewReportQuestionDetail {
+  questionText: string;
+  answerTranscript: string | null;
+  score: number | null;
+  feedback: string | null;
+}
+
+export interface InterviewReportResponse {
+  sessionId: number;
+  status: string;
+  overallScore: number;
+  strengths: string;
+  improvements: string;
+  summary: string;
+  questions: InterviewReportQuestionDetail[];
+}
+
 // ─── Template Types ───────────────────────────────────────────
 export interface TemplateResponse {
   templates: TemplateItem[];
