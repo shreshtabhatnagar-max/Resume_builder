@@ -1,11 +1,12 @@
 "use client";
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { useStartInterview, useSubmitAnswer } from "@/hooks/useInterview";
 import { interviewService } from "@/services/interview.service";
+
 import {
   InterviewSessionResponse,
   InterviewQuestion,
@@ -43,6 +44,9 @@ export default function MockInterviewPage() {
   const [recordingSeconds, setRecordingSeconds] = useState(0);
   const [lastAnswer, setLastAnswer] = useState<AnswerResponse | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [questionAudioUrl, setQuestionAudioUrl] = useState<string | null>(null);
+const [loadingAudio, setLoadingAudio] = useState(false);
+const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Report screen state
   const [report, setReport] = useState<InterviewReportResponse | null>(null);
@@ -270,10 +274,14 @@ export default function MockInterviewPage() {
         </div>
 
         <Card>
+        {questionAudioUrl && (
+  <audio ref={audioRef} src={questionAudioUrl} className="hidden" />
+)}
           <CardContent className="p-6 sm:p-8">
             <p className="text-lg font-medium leading-relaxed mb-8">
-              {currentQuestion.questionText}
-            </p>
+  {currentQuestion.questionText}
+  {loadingAudio && <span className="ml-2 text-xs text-[var(--muted-foreground)]">🔊 Loading audio...</span>}
+</p>
 
             {!lastAnswer ? (
               <div className="flex flex-col items-center gap-4 py-6">

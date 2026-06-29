@@ -3,9 +3,11 @@ package com.example.Resume_Builder.controller;
 import com.example.Resume_Builder.dto.InterviewSessionResponse;
 import com.example.Resume_Builder.entity.InterviewSession;
 import com.example.Resume_Builder.entity.User;
+import com.example.Resume_Builder.service.GeminiService;
 import com.example.Resume_Builder.service.InterviewService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -18,7 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class InterviewController {
 
     private final InterviewService interviewService;
-
+    private final GeminiService geminiService;
     @PostMapping("/start")
     public ResponseEntity<?> startInterview(
             @RequestParam("cv") MultipartFile cvFile,
@@ -55,6 +57,18 @@ public class InterviewController {
             return ResponseEntity.badRequest().body("Failed to submit answer: " + e.getMessage());
         }
     }
+    @GetMapping("/question-audio")
+    public ResponseEntity<byte[]> getQuestionAudio(@RequestParam("text") String text) {
+        try {
+            byte[] wavBytes = geminiService.generateSpeech(text);
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType("audio/wav"))
+                    .body(wavBytes);
+        } catch (Exception e) {
+            log.error("Failed to generate question audio", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
     @GetMapping("/{sessionId}/report")
     public ResponseEntity<?> getReport(
             @PathVariable Long sessionId,
@@ -70,4 +84,5 @@ public class InterviewController {
             return ResponseEntity.badRequest().body("Failed to generate report: " + e.getMessage());
         }
     }
+
 }

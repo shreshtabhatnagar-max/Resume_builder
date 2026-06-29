@@ -37,8 +37,15 @@ public class GeminiService {
      */
     public String generateQuestions(String resumeText, String roleTitle) {
         String prompt = String.format(
-                "You are an interview coach. Based on this resume, generate exactly 5 interview questions " +
-                        "(mix of technical and behavioral) for a %s position. " +
+                "You are a friendly interview coach helping a fresher/entry-level candidate practice for a %s position. " +
+                        "Based on this resume, generate exactly 10 interview questions that are EASY to MODERATE difficulty - " +
+                        "suitable for an entry-level or fresher candidate, not a senior engineer. " +
+                        "Carefully review the candidate's listed technical skills, programming languages, frameworks, tools, " +
+                        "and technologies mentioned in the resume, and make sure several questions directly test their " +
+                        "understanding of those specific skills (e.g. if they list Java, Spring Boot, MySQL, JWT, Kafka, etc., " +
+                        "include foundational questions about each relevant skill). " +
+                        "Also include questions about their projects and internship experience, and 1-2 general behavioral questions. " +
+                        "Focus on foundational concepts and general understanding, not deep architecture, optimization, or edge cases. " +
                         "Return ONLY a numbered list of questions, no extra commentary.\n\nResume:\n%s",
                 roleTitle, resumeText
         );
@@ -168,5 +175,88 @@ public class GeminiService {
         );
 
         return callGemini(payload);
+    }
+    public byte[] generateSpeech(String text) {
+        String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=" + apiKey;
+
+        Map<String, Object> payload = Map.of(
+                "contents", List.of(
+                        Map.of("parts", List.of(Map.of("text", text)))
+                ),
+                "generationConfig", Map.of(
+                        "responseModalities", List.of("AUDIO"),
+                        "speechConfig", Map.of(
+                                "voiceConfig", Map.of(
+                                        "prebuiltVoiceConfig", Map.of("voiceName", "Kore")
+                                )
+                        )
+                )
+        );
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<Map<String, Object>> request = new HttpEntity<>(payload, headers);
+
+        try {
+            ResponseEntity<Map> response = restTemplate.exchange(url, HttpMethod.POST, request, Map.class);
+            String base64Pcm = extractAudioData(response.getBody());
+            byte[] pcmBytes = java.util.Base64.getDecoder().decode(base64Pcm);
+            return wrapPcmAsWav(pcmBytes, 24000, 1, 16);
+        } catch (Exception e) {
+            log.error("Gemini TTS call failed", e);
+            throw new RuntimeException("Failed to generate speech: " + e.getMessage(), e);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private String extractAudioData(Map<String, Object> responseBody) {
+        List<Map<String, Object>> candidates = (List<Map<String, Object>>) responseBody.get("candidates");
+        Map<String, Object> content = (Map<String, Object>) candidates.get(0).get("content");
+        List<Map<String, Object>> parts = (List<Map<String, Object>>) content.get("parts");
+        Map<String, Object> inlineData = (Map<String, Object>) parts.get(0).get("inlineData");
+        return (String) inlineData.get("data");
+    }
+
+    private byte[] wrapPcmAsWav(byte[] pcmData, int sampleRate, int channels, int bitsPerSample) throws java.io.IOException {
+        int byteRate = sampleRate * channels * bitsPerSample / 8;
+        int blockAlign = channels * bitsPerSample / 8;
+        int dataSize = pcmData.length;
+        int chunkSize = 36 + dataSize;
+
+        java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+        java.io.DataOutputStream dos = new java.io.DataOutputStream(out);
+
+        dos.writeBytes("RIFF");
+        dos.write(intToLittleEndian(chunkSize), 0, 4);
+        dos.writeBytes("WAVE");
+        dos.writeBytes("fmt ");
+        dos.write(intToLittleEndian(16), 0, 4);
+        dos.write(shortToLittleEndian((short) 1), 0, 2);
+        dos.write(shortToLittleEndian((short) channels), 0, 2);
+        dos.write(intToLittleEndian(sampleRate), 0, 4);
+        dos.write(intToLittleEndian(byteRate), 0, 4);
+        dos.write(shortToLittleEndian((short) blockAlign), 0, 2);
+        dos.write(shortToLittleEndian((short) bitsPerSample), 0, 2);
+        dos.writeBytes("data");
+        dos.write(intToLittleEndian(dataSize), 0, 4);
+        dos.write(pcmData);
+
+        return out.toByteArray();
+    }
+
+    private byte[] intToLittleEndian(int value) {
+        return new byte[] {
+                (byte) (value & 0xff),
+                (byte) ((value >> 8) & 0xff),
+                (byte) ((value >> 16) & 0xff),
+                (byte) ((value >> 24) & 0xff)
+        };
+    }
+
+    private byte[] shortToLittleEndian(short value) {
+        return new byte[] {
+                (byte) (value & 0xff),
+                (byte) ((value >> 8) & 0xff)
+        };
     }
 }

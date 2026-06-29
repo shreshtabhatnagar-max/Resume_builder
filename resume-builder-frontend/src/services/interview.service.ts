@@ -30,7 +30,13 @@ export const interviewService = {
     );
     return res.data;
   },
-
+getQuestionAudio: async (text: string): Promise<string> => {
+  const res = await apiClient.get("/api/interview/question-audio", {
+    params: { text },
+    responseType: "blob",
+  });
+  return URL.createObjectURL(res.data);
+},
   getReport: async (sessionId: number): Promise<InterviewReportResponse> => {
     const res = await apiClient.get(`/api/interview/${sessionId}/report`);
     return res.data;
