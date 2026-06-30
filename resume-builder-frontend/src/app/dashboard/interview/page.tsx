@@ -186,6 +186,38 @@ const audioRef = useRef<HTMLAudioElement | null>(null);
     setReport(null);
   };
 
+  // ─── Fetch and play question audio ───────────────────────────
+  useEffect(() => {
+    if (screen !== "interview" || !session) return;
+
+    const currentQuestion = session.questions[currentIndex];
+    if (!currentQuestion) return;
+
+    let isCancelled = false;
+    setLoadingAudio(true);
+    setQuestionAudioUrl(null);
+
+    interviewService.getQuestionAudio(currentQuestion.questionText).then((url) => {
+      if (isCancelled) return;
+      setQuestionAudioUrl(url);
+      setLoadingAudio(false);
+    }).catch(() => {
+      if (!isCancelled) setLoadingAudio(false);
+    });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [screen, session, currentIndex]);
+
+  useEffect(() => {
+    if (questionAudioUrl && audioRef.current) {
+      audioRef.current.play().catch(() => {
+        // Autoplay might be blocked by browser until user interacts - that's fine
+      });
+    }
+  }, [questionAudioUrl]);
+  
   // ─── Render: Upload Screen ───────────────────────────────────
   if (screen === "upload") {
     return (
